@@ -6,7 +6,6 @@ public final class DatabaseManager {
 
     private static DatabaseManager instance;
     private Connection connection;
-    private boolean useSQLite = false;
 
     private static final String DB_HOST = "localhost";
     private static final int DB_PORT = 3306;
@@ -16,7 +15,6 @@ public final class DatabaseManager {
 
     private static final String BASE_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT;
     private static final String DB_URL = BASE_URL + "/" + DB_NAME + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String SQLITE_URL = "jdbc:sqlite:calbank.db";
 
     private DatabaseManager() {
         initializeDatabase();
@@ -35,30 +33,13 @@ public final class DatabaseManager {
             createDatabaseIfNotExists();
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             connection.setAutoCommit(true);
-            useSQLite = false;
             System.out.println("Connected to MySQL database.");
-        } catch (Exception mysqlEx) {
-            System.out.println("MySQL unavailable (" + mysqlEx.getMessage() + "). Falling back to SQLite database.");
-            try {
-                Class.forName("org.sqlite.JDBC");
-                connection = DriverManager.getConnection(SQLITE_URL);
-                connection.setAutoCommit(true);
-                useSQLite = true;
-                try (Statement stmt = connection.createStatement()) {
-                    stmt.execute("PRAGMA foreign_keys = ON;");
-                }
-                System.out.println("Connected to SQLite database (calbank.db).");
-            } catch (Exception sqliteEx) {
-                throw new RuntimeException("Failed to initialize database: " + sqliteEx.getMessage(), sqliteEx);
-            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to connect to MySQL: " + ex.getMessage(), ex);
         }
         createTables();
         seedDefaultCategories();
         seedAdminUser();
-    }
-
-    public boolean isSQLite() {
-        return useSQLite;
     }
 
     private void createDatabaseIfNotExists() throws SQLException {
@@ -70,7 +51,7 @@ public final class DatabaseManager {
     }
 
     private void createTables() {
-        String[] mysqlTables = {
+        String[] tables = {
             "CREATE TABLE IF NOT EXISTS users ("
             + "id INT AUTO_INCREMENT PRIMARY KEY,"
             + "username VARCHAR(50) UNIQUE NOT NULL,"
@@ -155,92 +136,6 @@ public final class DatabaseManager {
             + ") ENGINE=InnoDB"
         };
 
-        String[] sqliteTables = {
-            "CREATE TABLE IF NOT EXISTS users ("
-            + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + "username TEXT UNIQUE NOT NULL,"
-            + "password_hash TEXT NOT NULL,"
-            + "email TEXT UNIQUE NOT NULL,"
-            + "full_name TEXT NOT NULL,"
-            + "phone TEXT DEFAULT '',"
-            + "address TEXT DEFAULT '',"
-            + "role TEXT DEFAULT 'USER',"
-            + "active INTEGER DEFAULT 1,"
-            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-            + ")",
-
-            "CREATE TABLE IF NOT EXISTS accounts ("
-            + "account_id TEXT PRIMARY KEY,"
-            + "user_id INTEGER NOT NULL,"
-            + "account_type TEXT NOT NULL,"
-            + "balance REAL DEFAULT 0,"
-            + "currency TEXT DEFAULT 'USD',"
-            + "status TEXT DEFAULT 'ACTIVE',"
-            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-            + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
-            + ")",
-
-            "CREATE TABLE IF NOT EXISTS categories ("
-            + "category_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + "user_id INTEGER DEFAULT 0,"
-            + "name TEXT NOT NULL,"
-            + "icon TEXT DEFAULT '',"
-            + "color TEXT DEFAULT '#4CAF50',"
-            + "is_default INTEGER DEFAULT 0,"
-            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-            + "UNIQUE (user_id, name)"
-            + ")",
-
-            "CREATE TABLE IF NOT EXISTS transactions ("
-            + "transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + "account_id TEXT NOT NULL,"
-            + "transaction_type TEXT NOT NULL,"
-            + "amount REAL NOT NULL,"
-            + "balance_after REAL NOT NULL,"
-            + "description TEXT DEFAULT '',"
-            + "recipient_account TEXT DEFAULT '',"
-            + "category_id INTEGER DEFAULT NULL,"
-            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-            + "receipt_number TEXT UNIQUE,"
-            + "FOREIGN KEY(account_id) REFERENCES accounts(account_id) ON DELETE CASCADE,"
-            + "FOREIGN KEY(category_id) REFERENCES categories(category_id) ON DELETE SET NULL"
-            + ")",
-
-            "CREATE TABLE IF NOT EXISTS loans ("
-            + "loan_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + "account_id TEXT NOT NULL,"
-            + "principal_amount REAL NOT NULL,"
-            + "interest_rate REAL NOT NULL,"
-            + "loan_term_months INTEGER NOT NULL,"
-            + "monthly_payment REAL,"
-            + "status TEXT DEFAULT 'PENDING',"
-            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-            + "FOREIGN KEY(account_id) REFERENCES accounts(account_id) ON DELETE CASCADE"
-            + ")",
-
-            "CREATE TABLE IF NOT EXISTS savings ("
-            + "savings_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + "account_id TEXT NOT NULL,"
-            + "initial_amount REAL NOT NULL,"
-            + "monthly_contribution REAL DEFAULT 0,"
-            + "interest_rate REAL DEFAULT 0,"
-            + "months INTEGER NOT NULL,"
-            + "final_amount REAL,"
-            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-            + "FOREIGN KEY(account_id) REFERENCES accounts(account_id) ON DELETE CASCADE"
-            + ")",
-
-            "CREATE TABLE IF NOT EXISTS user_preferences ("
-            + "pref_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + "user_id INTEGER UNIQUE NOT NULL,"
-            + "theme TEXT DEFAULT 'LIGHT',"
-            + "notifications_enabled INTEGER DEFAULT 1,"
-            + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
-            + ")"
-        };
-
-        String[] tables = useSQLite ? sqliteTables : mysqlTables;
-
         try (Statement stmt = connection.createStatement()) {
             for (String sql : tables) {
                 stmt.execute(sql);
@@ -313,15 +208,7 @@ public final class DatabaseManager {
     public Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {
-                if (useSQLite) {
-                    Class.forName("org.sqlite.JDBC");
-                    connection = DriverManager.getConnection(SQLITE_URL);
-                    try (Statement stmt = connection.createStatement()) {
-                        stmt.execute("PRAGMA foreign_keys = ON;");
-                    }
-                } else {
-                    connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-                }
+                connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to obtain database connection", e);
