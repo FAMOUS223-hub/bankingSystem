@@ -211,18 +211,18 @@ public final class CalBankApp extends JFrame {
                 @Override
                 protected void done() {
                     animTimer.stop();
+                    splashDialog.dispose();
+                    app.setVisible(true);
                     try {
                         Boolean ok = get();
                         if (!ok) {
-                            splashDialog.dispose();
                             app.showLogin();
                             JOptionPane.showMessageDialog(app,
-                                "Database connection failed.\nPlease ensure MySQL is running.\nYou can still use the app.",
-                                "Database Warning", JOptionPane.WARNING_MESSAGE);
+                                "Database connection failed.\nPlease ensure MySQL is running.",
+                                "Database Error", JOptionPane.ERROR_MESSAGE);
                             return;
                         }
                     } catch (Exception e) {
-                        splashDialog.dispose();
                         app.showLogin();
                         JOptionPane.showMessageDialog(app,
                             "Startup error: " + e.getMessage(),
@@ -231,13 +231,7 @@ public final class CalBankApp extends JFrame {
                     }
 
                     splashPanel.updateProgress(1f);
-                    Timer finishTimer = new Timer(600, ev -> {
-                        splashDialog.dispose();
-                        app.setVisible(true);
-                        app.showLogin();
-                    });
-                    finishTimer.setRepeats(false);
-                    finishTimer.start();
+                    app.showLogin();
                 }
             };
             worker.execute();
