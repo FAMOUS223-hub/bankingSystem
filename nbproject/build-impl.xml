@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+*** GENERATED FROM project.xml - DO NOT EDIT  ***
+***         EDIT ../build.xml INSTEAD          ***
+-->
+<project name="CalBank-impl" default="default" basedir="..">
+    <fail message="Please build using Ant 1.8.0 or higher.">
+        <condition>
+            <not>
+                <antversion minimum="1.8.0"/>
+            </not>
+        </condition>
+    </fail>
+
+    <property file="nbproject/private/config.properties"/>
+    <property file="nbproject/private/configs/${config}.properties"/>
+    <property file="nbproject/private/private.properties"/>
+
+    <property file="nbproject/project.properties"/>
+
+    <property name="platform.javac" value="${java.home}/../bin/javac"/>
+    <property name="platform.java" value="${java.home}/bin/java"/>
+
+    <property name="javac.includes" value="**/*.java"/>
+
+    <target name="default" depends="test,jar" description="Build and test whole project."/>
+
+    <target name="init" depends="init-misc,init-macrodef-property">
+        <property file="${basedir}/build.properties"/>
+        <property file="${user.properties.file}"/>
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.dir}/generated-sources/ap-source-output"/>
+    </target>
+
+    <target name="init-misc" depends="init"/>
+    <target name="init-macrodef-property"/>
+
+    <target name="pre-init"/>
+
+    <target name="init-macrodef-conditions"/>
+
+    <target name="post-init"/>
+
+    <target name="init-check"/>
+
+    <target name="compile" depends="init,pre-init,init-macrodef-property" description="Compile project.">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac srcdir="${src.dir}"
+               destdir="${build.classes.dir}"
+               debug="${javac.debug}"
+               deprecation="${javac.deprecation}"
+               encoding="${source.encoding}"
+               source="${javac.source}"
+               target="${javac.target}"
+               includeantruntime="false">
+            <classpath>
+                <path path="${javac.classpath}"/>
+            </classpath>
+            <compilerarg line="${javac.compilerargs}"/>
+        </javac>
+        <copy todir="${build.classes.dir}">
+            <fileset dir="${src.dir}" excludes="${build.classes.excludes},${excludes}" includes="${includes}"/>
+        </copy>
+    </target>
+
+    <target name="jar" depends="compile" description="Build JAR.">
+        <mkdir dir="${dist.dir}"/>
+        <jar destfile="${dist.jar}" compress="${jar.compress}">
+            <fileset dir="${build.classes.dir}" excludes="${dist.archive.excludes}"/>
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Implementation-Title" value="${application.title}"/>
+                <attribute name="Implementation-Version" value="2.0"/>
+            </manifest>
+        </jar>
+        <copy todir="${dist.dir}" flatten="true">
+            <fileset dir="${basedir}/lib" includes="*.jar"/>
+        </copy>
+    </target>
+
+    <target name="run" depends="jar" description="Run main class.">
+        <java fork="true" classname="${main.class}" dir="${basedir}">
+            <classpath>
+                <path path="${dist.jar}"/>
+                <fileset dir="${dist.dir}" includes="*.jar"/>
+            </classpath>
+            <jvmarg line="${run.jvmargs}"/>
+        </java>
+    </target>
+
+    <target name="clean" description="Clean build products.">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}" followsymlinks="false" includeemptydirs="true"/>
+    </target>
+
+    <target name="test" depends="compile" description="Run unit tests.">
+        <mkdir dir="${build.test.classes.dir}"/>
+        <mkdir dir="${build.test.results.dir}"/>
+    </target>
+
+    <target name="javadoc" depends="compile" description="Build Javadoc.">
+        <mkdir dir="${dist.javadoc.dir}"/>
+        <javadoc sourcepath="${src.dir}" destdir="${dist.javadoc.dir}"
+                 packagenames="com.calbank.*"
+                 author="${javadoc.author}" version="${javadoc.version}"
+                 use="${javadoc.use}" windowtitle="${javadoc.windowtitle}"
+                 additionalparam="${javadoc.additionalparam}"
+                 encoding="${source.encoding}"/>
+    </target>
+
+    <target name="init-macrodef-property">
+        <macrodef name="property" uri="http://www.netbeans.org/ns/project/1">
+            <attribute name="name"/>
+            <attribute name="value"/>
+            <sequential>
+                <property name="@{name}" value="${@{value}}"/>
+            </sequential>
+        </macrodef>
+    </target>
+
+    <target name="-do-compile">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac srcdir="${src.dir}"
+               destdir="${build.classes.dir}"
+               debug="${javac.debug}"
+               deprecation="${javac.deprecation}"
+               encoding="${source.encoding}"
+               source="${javac.source}"
+               target="${javac.target}"
+               includeantruntime="false">
+            <classpath>
+                <path path="${javac.classpath}"/>
+            </classpath>
+            <compilerarg line="${javac.compilerargs}"/>
+        </javac>
+        <copy todir="${build.classes.dir}">
+            <fileset dir="${src.dir}" excludes="${build.classes.excludes}"/>
+        </copy>
+    </target>
+</project>
