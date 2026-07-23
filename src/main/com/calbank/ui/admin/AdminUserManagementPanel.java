@@ -3,6 +3,7 @@ package com.calbank.ui.admin;
 import com.calbank.models.User;
 import com.calbank.services.UserService;
 import com.calbank.ui.theme.ThemeManager;
+import com.calbank.ui.TableActionButtons;
 import com.calbank.ui.ToastNotification;
 import com.calbank.utils.IconUtils;
 
@@ -10,6 +11,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class AdminUserManagementPanel extends JPanel implements com.calbank.ui.MainContentPanel.Refreshable {
@@ -19,8 +21,15 @@ public final class AdminUserManagementPanel extends JPanel implements com.calban
     private JTable table;
     private JTextField searchField;
     private JLabel countLabel;
+    private final List<User> displayedUsers = new ArrayList<>();
 
     public AdminUserManagementPanel() {
+        refresh();
+    }
+
+    @Override
+    public void refresh() {
+        removeAll();
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
 
@@ -71,6 +80,8 @@ public final class AdminUserManagementPanel extends JPanel implements com.calban
 
         add(content, BorderLayout.CENTER);
         refreshTable();
+        revalidate();
+        repaint();
     }
 
     private JPanel createToolbar() {
@@ -188,22 +199,22 @@ public final class AdminUserManagementPanel extends JPanel implements com.calban
             }
         });
 
-        table.getColumnModel().getColumn(7).setCellRenderer(new DefaultTableCellRenderer() {
-            {
-                setHorizontalAlignment(CENTER);
-            }
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object val, boolean sel, boolean foc, int row, int col) {
-                JLabel label = (JLabel) super.getTableCellRendererComponent(t, val, sel, foc, row, col);
-                label.setText(IconUtils.get("settings") + " Actions");
-                label.setFont(ThemeManager.getSmallFont());
-                label.setForeground(ThemeManager.getPrimaryColor());
-                if (!sel) {
-                    label.setBackground(row % 2 == 0 ? ThemeManager.getTableRowEven() : ThemeManager.getTableRowOdd());
+        table.getColumnModel().getColumn(7).setCellRenderer(TableActionButtons.createRenderer());
+        table.getColumnModel().getColumn(7).setPreferredWidth(180);
+
+        TableActionButtons.attachMouseHandler(table, 7,
+            row -> {
+                User user = getUserAtRow(row);
+                if (user != null) {
+                    showEditUserDialog(user);
                 }
-                return label;
-            }
-        });
+            },
+            row -> {
+                User user = getUserAtRow(row);
+                if (user != null) {
+                    deleteUser(user);
+                }
+            });
 
         table.getColumnModel().getColumn(0).setPreferredWidth(40);
         table.getColumnModel().getColumn(1).setPreferredWidth(100);
@@ -212,87 +223,22 @@ public final class AdminUserManagementPanel extends JPanel implements com.calban
         table.getColumnModel().getColumn(4).setPreferredWidth(100);
         table.getColumnModel().getColumn(5).setPreferredWidth(70);
         table.getColumnModel().getColumn(6).setPreferredWidth(80);
-        table.getColumnModel().getColumn(7).setPreferredWidth(100);
-
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                showActionsPopup(e);
-            }
-            @Override
-            public void mouseReleased(java.awt.event.MouseEvent e) {
-                showActionsPopup(e);
-            }
-        });
 
         JScrollPane sp = new JScrollPane(table);
         sp.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1));
         return sp;
     }
 
-    private void showActionsPopup(java.awt.event.MouseEvent e) {
-        int row = table.rowAtPoint(e.getPoint());
-        int col = table.columnAtPoint(e.getPoint());
-        if (row < 0 || col < 7) return;
-
-        table.setRowSelectionInterval(row, row);
-        User user = getUserAtRow(row);
-        if (user == null) return;
-
-        JPopupMenu popup = new JPopupMenu();
-        popup.setBackground(ThemeManager.getCardColor());
-        popup.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1));
-
-        JMenuItem editItem = new JMenuItem(IconUtils.get("edit") + "  Edit User");
-        editItem.setFont(ThemeManager.getLabelFont());
-        editItem.setForeground(ThemeManager.getTextColor());
-        editItem.setBackground(ThemeManager.getCardColor());
-        editItem.addActionListener(ev -> showEditUserDialog(user));
-        popup.add(editItem);
-
-        JMenuItem toggleItem = new JMenuItem();
-        toggleItem.setFont(ThemeManager.getLabelFont());
-        toggleItem.setForeground(ThemeManager.getTextColor());
-        toggleItem.setBackground(ThemeManager.getCardColor());
-        if (user.isActive()) {
-            toggleItem.setText(IconUtils.get("warning") + "  Disable User");
-        } else {
-            toggleItem.setText(IconUtils.get("check") + "  Enable User");
-        }
-        if (user.isAdmin()) {
-            toggleItem.setEnabled(false);
-        }
-        toggleItem.addActionListener(ev -> toggleUserStatus(user));
-        popup.add(toggleItem);
-
-        popup.addSeparator();
-
-        JMenuItem deleteItem = new JMenuItem(IconUtils.get("delete") + "  Delete User");
-        deleteItem.setFont(ThemeManager.getLabelFont());
-        deleteItem.setForeground(ThemeManager.getErrorColor());
-        deleteItem.setBackground(ThemeManager.getCardColor());
-        if (user.isAdmin()) {
-            deleteItem.setEnabled(false);
-        }
-        deleteItem.addActionListener(ev -> deleteUser(user));
-        popup.add(deleteItem);
-
-        popup.show(table, e.getX(), e.getY());
-    }
-
     private User getUserAtRow(int row) {
-        if (row < 0 || row >= tableModel.getRowCount()) return null;
-        Object val = tableModel.getValueAt(row, 7);
-        return (val instanceof User) ? (User) val : null;
-    }
-
-    @Override
-    public void refresh() {
-        refreshTable();
+        if (row < 0 || row >= displayedUsers.size()) {
+            return null;
+        }
+        return displayedUsers.get(row);
     }
 
     private void refreshTable() {
         tableModel.setRowCount(0);
+        displayedUsers.clear();
         String search = searchField != null ? searchField.getText().trim() : "";
         List<User> users;
         if (search.isEmpty()) {
@@ -302,12 +248,13 @@ public final class AdminUserManagementPanel extends JPanel implements com.calban
         }
 
         for (User u : users) {
+            displayedUsers.add(u);
             tableModel.addRow(new Object[]{
                 u.getId(), u.getUsername(), u.getFullName(), u.getEmail(),
                 u.getPhone() != null ? u.getPhone() : "",
                 u.getRole(),
                 u.isActive() ? "Active" : "Inactive",
-                u
+                !u.isAdmin()
             });
         }
 
@@ -542,9 +489,16 @@ public final class AdminUserManagementPanel extends JPanel implements com.calban
             JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            userService.deleteUser(user.getId());
-            refreshTable();
-            ToastNotification.showSuccess(this, "User deleted successfully");
+            try {
+                if (userService.deleteUser(user.getId())) {
+                    refreshTable();
+                    ToastNotification.showSuccess(this, "User '" + user.getUsername() + "' deleted successfully");
+                } else {
+                    ToastNotification.showError(this, "Could not delete user. Admin accounts are protected.");
+                }
+            } catch (Exception ex) {
+                ToastNotification.showError(this, "Delete failed: " + ex.getMessage());
+            }
         }
     }
 }

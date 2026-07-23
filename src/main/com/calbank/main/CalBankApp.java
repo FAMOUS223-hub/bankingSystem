@@ -42,6 +42,7 @@ public final class CalBankApp extends JFrame {
     }
 
     private void showLogin() {
+        NavigationHelper.clear();
         LoginPanel login = new LoginPanel(
             () -> showDashboard(false),
             () -> showDashboard(true),
@@ -102,12 +103,22 @@ public final class CalBankApp extends JFrame {
 
         setupSidebarNavigation(admin);
 
+        NavigationHelper.setPanelNavigator(panelName -> {
+            sidebar.setActive(NavigationHelper.sidebarLabelForPanel(panelName));
+            mainContent.showPanel(panelName);
+        });
+
         setContentPane(dashboardWrapper);
         revalidate();
         repaint();
 
-        sidebar.setActive("Dashboard");
-        mainContent.showPanel(admin ? "Admin Dashboard" : "Dashboard");
+        if (admin) {
+            sidebar.setActive("Dashboard");
+            mainContent.showPanel("Admin Dashboard");
+        } else {
+            sidebar.setActive("Dashboard");
+            mainContent.showPanel("Dashboard");
+        }
 
         SwingUtilities.invokeLater(() -> {
             toFront();

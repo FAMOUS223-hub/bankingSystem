@@ -52,6 +52,14 @@ public final class MainContentPanel extends JPanel {
     public void refreshTheme() {
         setBackground(ThemeManager.getBackgroundColor());
         contentPanel.setBackground(ThemeManager.getBackgroundColor());
+        for (Component comp : contentPanel.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                Component view = ((JScrollPane) comp).getViewport().getView();
+                if (view instanceof Refreshable) {
+                    ((Refreshable) view).refresh();
+                }
+            }
+        }
         revalidate();
         repaint();
     }

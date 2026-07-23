@@ -9,7 +9,7 @@ import com.calbank.utils.InputValidator;
 import javax.swing.*;
 import java.awt.*;
 
-public final class ProfilePanel extends JPanel {
+public final class ProfilePanel extends JPanel implements MainContentPanel.Refreshable {
 
     private final UserService userService = new UserService();
     private JTextField fullNameField, emailField, phoneField;
@@ -17,8 +17,9 @@ public final class ProfilePanel extends JPanel {
     private JLabel errorLabel;
     private final Runnable onProfileUpdated;
 
-    public ProfilePanel(Runnable onProfileUpdated) {
-        this.onProfileUpdated = onProfileUpdated;
+    @Override
+    public void refresh() {
+        removeAll();
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
 
@@ -44,6 +45,21 @@ public final class ProfilePanel extends JPanel {
         content.add(Box.createVerticalGlue(), gbc);
 
         add(content, BorderLayout.CENTER);
+
+        User u = CurrentUser.getInstance().getUser();
+        if (u != null) {
+            if (fullNameField != null) fullNameField.setText(u.getFullName());
+            if (emailField != null) emailField.setText(u.getEmail());
+            if (phoneField != null) phoneField.setText(u.getPhone() != null ? u.getPhone() : "");
+            if (addressArea != null) addressArea.setText(u.getAddress() != null ? u.getAddress() : "");
+        }
+        revalidate();
+        repaint();
+    }
+
+    public ProfilePanel(Runnable onProfileUpdated) {
+        this.onProfileUpdated = onProfileUpdated;
+        refresh();
     }
 
     private JPanel createProfileCard(User user) {

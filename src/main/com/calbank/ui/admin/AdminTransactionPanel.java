@@ -12,8 +12,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
+import com.calbank.ui.MainContentPanel;
 
-public final class AdminTransactionPanel extends JPanel {
+public final class AdminTransactionPanel extends JPanel implements MainContentPanel.Refreshable {
 
     private final TransactionService transactionService = new TransactionService();
     private DefaultTableModel tableModel;
@@ -23,6 +24,12 @@ public final class AdminTransactionPanel extends JPanel {
     private JLabel countLabel;
 
     public AdminTransactionPanel() {
+        refresh();
+    }
+
+    @Override
+    public void refresh() {
+        removeAll();
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
 
@@ -83,6 +90,8 @@ public final class AdminTransactionPanel extends JPanel {
 
         add(content, BorderLayout.CENTER);
         refreshTable();
+        revalidate();
+        repaint();
     }
 
     private JPanel createSummaryCards() {
@@ -176,9 +185,7 @@ public final class AdminTransactionPanel extends JPanel {
         leftPanel.add(typeLabel);
 
         typeFilter = new JComboBox<>(new String[]{"ALL", "DEPOSIT", "WITHDRAW", "TRANSFER"});
-        typeFilter.setFont(ThemeManager.getInputFont());
-        typeFilter.setBackground(ThemeManager.getInputBackground());
-        typeFilter.setForeground(ThemeManager.getTextColor());
+        ThemeManager.styleComboBox(typeFilter);
         typeFilter.addActionListener(e -> refreshTable());
         leftPanel.add(typeFilter);
 

@@ -8,9 +8,11 @@ import com.calbank.utils.TransactionUtils;
 import javax.swing.*;
 import java.awt.*;
 
-public final class CalculatorsPanel extends JPanel {
+public final class CalculatorsPanel extends JPanel implements MainContentPanel.Refreshable {
 
-    public CalculatorsPanel() {
+    @Override
+    public void refresh() {
+        removeAll();
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
 
@@ -36,6 +38,12 @@ public final class CalculatorsPanel extends JPanel {
         content.add(tabs, gbc);
 
         add(content, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    public CalculatorsPanel() {
+        refresh();
     }
 
     private JPanel createLoanCalculator() {

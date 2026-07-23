@@ -59,7 +59,7 @@ public final class SidebarPanel extends JPanel {
             badgePanel.setMaximumSize(new Dimension(220, 32));
             badgePanel.setPreferredSize(new Dimension(220, 32));
             JLabel badge = new JLabel("Super Admin");
-            badge.setFont(ThemeManager.getSmallFont().deriveFont(Font.BOLD));
+            badge.setFont(ThemeManager.getSectionFont().deriveFont(Font.BOLD));
             badge.setForeground(new Color(255, 193, 7));
             badgePanel.add(badge);
             inner.add(badgePanel);
@@ -105,7 +105,8 @@ public final class SidebarPanel extends JPanel {
         SidebarButton logoutBtn = new SidebarButton("logout", "Logout");
         logoutBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         logoutBtn.addActionListener(e -> {
-            if (JOptionPane.showConfirmDialog(this,
+            java.awt.Window window = SwingUtilities.getWindowAncestor(this);
+            if (JOptionPane.showConfirmDialog(window,
                     "Are you sure you want to logout?",
                     "Logout Confirmation",
                     JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {

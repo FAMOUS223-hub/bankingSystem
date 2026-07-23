@@ -13,7 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public final class TransferPanel extends JPanel {
+public final class TransferPanel extends JPanel implements MainContentPanel.Refreshable {
 
     private final AccountService accountService;
     private final TransactionService transactionService;
@@ -29,6 +29,12 @@ public final class TransferPanel extends JPanel {
         this.transactionService = transactionService;
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
+        refresh();
+    }
+
+    @Override
+    public void refresh() {
+        removeAll();
 
         JPanel content = new JPanel(new GridBagLayout());
         content.setBackground(ThemeManager.getBackgroundColor());
@@ -58,9 +64,13 @@ public final class TransferPanel extends JPanel {
         card.add(makeLabel("From Account"), cg);
         cg.gridy++; cg.insets = new Insets(0, 0, 8, 0);
         fromAccountSelector = new JComboBox<>();
-        for (Account a : accounts)
-            fromAccountSelector.addItem(a.getAccountId() + " (" + a.getAccountType() + ")");
-        fromAccountSelector.setFont(ThemeManager.getInputFont());
+        if (accounts.isEmpty()) {
+            fromAccountSelector.addItem("No accounts found");
+        } else {
+            for (Account a : accounts)
+                fromAccountSelector.addItem(a.getAccountId() + " (" + a.getAccountType() + ")");
+        }
+        ThemeManager.styleComboBox(fromAccountSelector);
         fromAccountSelector.addActionListener(e -> updateBalance());
         card.add(fromAccountSelector, cg);
 
@@ -88,10 +98,14 @@ public final class TransferPanel extends JPanel {
         card.add(makeLabel("To Account"), cg);
         cg.gridy++; cg.insets = new Insets(0, 0, 12, 0);
         toAccountSelector = new JComboBox<>();
-        for (Account a : accounts)
-            toAccountSelector.addItem(a.getAccountId() + " (" + a.getAccountType() + ")");
-        if (accounts.size() > 1) toAccountSelector.setSelectedIndex(1);
-        toAccountSelector.setFont(ThemeManager.getInputFont());
+        if (accounts.isEmpty()) {
+            toAccountSelector.addItem("No accounts found");
+        } else {
+            for (Account a : accounts)
+                toAccountSelector.addItem(a.getAccountId() + " (" + a.getAccountType() + ")");
+            if (accounts.size() > 1) toAccountSelector.setSelectedIndex(1);
+        }
+        ThemeManager.styleComboBox(toAccountSelector);
         card.add(toAccountSelector, cg);
 
         cg.gridy++; cg.insets = new Insets(0, 0, 6, 0);
@@ -135,11 +149,13 @@ public final class TransferPanel extends JPanel {
 
         add(content, BorderLayout.CENTER);
         SwingUtilities.invokeLater(this::updateBalance);
+        revalidate();
+        repaint();
     }
 
     private void updateBalance() {
         String selected = (String) fromAccountSelector.getSelectedItem();
-        if (selected == null) return;
+        if (selected == null || "No accounts found".equals(selected)) return;
         String accountId = selected.split(" ")[0];
         Account a = accountService.getAccountById(accountId);
         if (a != null)
@@ -149,7 +165,10 @@ public final class TransferPanel extends JPanel {
     private void handleTransfer() {
         String fromStr = (String) fromAccountSelector.getSelectedItem();
         String toStr = (String) toAccountSelector.getSelectedItem();
-        if (fromStr == null || toStr == null) return;
+        if (fromStr == null || toStr == null || "No accounts found".equals(fromStr) || "No accounts found".equals(toStr)) {
+            errorLabel.setText("Create valid accounts first");
+            return;
+        }
         String fromId = fromStr.split(" ")[0];
         String toId = toStr.split(" ")[0];
         String amount = amountField.getText().trim();

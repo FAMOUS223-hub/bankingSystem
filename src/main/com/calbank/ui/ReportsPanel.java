@@ -13,11 +13,17 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
 
-public final class ReportsPanel extends JPanel {
+public final class ReportsPanel extends JPanel implements MainContentPanel.Refreshable {
 
     private final AccountService accountService = new AccountService();
     private final ReportService reportService = new ReportService();
     private JPanel reportArea;
+
+    @Override
+    public void refresh() {
+        LocalDate now = LocalDate.now();
+        generateReport(now.getMonthValue(), now.getYear());
+    }
 
     public ReportsPanel() {
         setLayout(new BorderLayout());

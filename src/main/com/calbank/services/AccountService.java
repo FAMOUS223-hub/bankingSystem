@@ -120,6 +120,31 @@ public final class AccountService {
         }
     }
 
+    public boolean resetAllAccountBalancesAndTransactions() {
+        Connection conn = dbManager.getConnection();
+        try {
+            boolean autoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("UPDATE accounts SET balance = 0.0");
+                    stmt.executeUpdate("DELETE FROM transactions");
+                    stmt.executeUpdate("DELETE FROM loans");
+                    stmt.executeUpdate("DELETE FROM savings");
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommit);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to reset balances and transactions: " + e.getMessage(), e);
+        }
+    }
+
     private Account mapAccount(ResultSet rs) throws SQLException {
         Account a = new Account();
         a.setAccountId(rs.getString("account_id"));

@@ -11,13 +11,15 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 
-public final class CategoryPanel extends JPanel {
+public final class CategoryPanel extends JPanel implements MainContentPanel.Refreshable {
 
     private final CategoryService categoryService = new CategoryService();
     private DefaultTableModel tableModel;
     private JTable table;
 
-    public CategoryPanel() {
+    @Override
+    public void refresh() {
+        removeAll();
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
 
@@ -90,6 +92,12 @@ public final class CategoryPanel extends JPanel {
 
         add(content, BorderLayout.CENTER);
         refreshTable();
+        revalidate();
+        repaint();
+    }
+
+    public CategoryPanel() {
+        refresh();
     }
 
     private void refreshTable() {

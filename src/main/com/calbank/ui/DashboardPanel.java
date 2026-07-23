@@ -193,10 +193,7 @@ public final class DashboardPanel extends JPanel implements MainContentPanel.Ref
     }
 
     private void navigateTo(String panelName) {
-        java.awt.Container parent = SwingUtilities.getAncestorOfClass(MainContentPanel.class, this);
-        if (parent instanceof MainContentPanel) {
-            ((MainContentPanel) parent).showPanel(panelName);
-        }
+        NavigationHelper.navigateTo(panelName);
     }
 
     private JPanel createAccountCard(Account acc) {

@@ -7,6 +7,9 @@ import com.calbank.services.TransactionService;
 import com.calbank.services.UserService;
 import com.calbank.ui.CurrentUser;
 import com.calbank.ui.MainContentPanel;
+import com.calbank.ui.NavigationHelper;
+import com.calbank.ui.TableActionButtons;
+import com.calbank.ui.ToastNotification;
 import com.calbank.ui.theme.ThemeManager;
 import com.calbank.utils.DateUtils;
 import com.calbank.utils.IconUtils;
@@ -16,6 +19,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class AdminDashboardPanel extends JPanel implements com.calbank.ui.MainContentPanel.Refreshable {
@@ -28,8 +32,16 @@ public final class AdminDashboardPanel extends JPanel implements com.calbank.ui.
     private JLabel totalDepositsVal, totalWithdrawalsVal, totalTransfersVal, txCountVal;
     private DefaultTableModel recentTxModel;
     private DefaultTableModel recentUsersModel;
+    private JTable recentUsersTable;
+    private final List<User> recentUsersList = new ArrayList<>();
 
     public AdminDashboardPanel() {
+        refresh();
+    }
+
+    @Override
+    public void refresh() {
+        removeAll();
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
 
@@ -116,12 +128,9 @@ public final class AdminDashboardPanel extends JPanel implements com.calbank.ui.
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
 
-        refresh();
-    }
-
-    @Override
-    public void refresh() {
         refreshData();
+        revalidate();
+        repaint();
     }
 
     private void refreshData() {
@@ -145,12 +154,15 @@ public final class AdminDashboardPanel extends JPanel implements com.calbank.ui.
 
         // Refresh recent users table
         recentUsersModel.setRowCount(0);
+        recentUsersList.clear();
         List<User> users = userService.getAllUsers();
         for (int i = 0; i < Math.min(users.size(), 8); i++) {
             User u = users.get(i);
+            recentUsersList.add(u);
             recentUsersModel.addRow(new Object[]{
                 u.getId(), u.getUsername(), u.getFullName(),
-                u.getEmail(), u.getRole(), u.isActive() ? "Active" : "Inactive"
+                u.getEmail(), u.getRole(), u.isActive() ? "Active" : "Inactive",
+                !u.isAdmin()
             });
         }
 
@@ -255,30 +267,15 @@ public final class AdminDashboardPanel extends JPanel implements com.calbank.ui.
 
         JButton usersBtn = new JButton(IconUtils.get("users") + " Manage Users");
         ThemeManager.stylePrimaryButton(usersBtn);
-        usersBtn.addActionListener(e -> {
-            java.awt.Container parent = SwingUtilities.getAncestorOfClass(MainContentPanel.class, this);
-            if (parent instanceof MainContentPanel) {
-                ((MainContentPanel) parent).showPanel("Admin Users");
-            }
-        });
+        usersBtn.addActionListener(e -> NavigationHelper.navigateAdmin("Admin Users"));
 
         JButton txBtn = new JButton(IconUtils.get("transactions") + " All Transactions");
         ThemeManager.styleButton(txBtn, ThemeManager.getInfoColor());
-        txBtn.addActionListener(e -> {
-            java.awt.Container parent = SwingUtilities.getAncestorOfClass(MainContentPanel.class, this);
-            if (parent instanceof MainContentPanel) {
-                ((MainContentPanel) parent).showPanel("Admin Transactions");
-            }
-        });
+        txBtn.addActionListener(e -> NavigationHelper.navigateAdmin("Admin Transactions"));
 
         JButton settingsBtn = new JButton(IconUtils.get("settings") + " System Settings");
         ThemeManager.styleButton(settingsBtn, ThemeManager.getWarningColor());
-        settingsBtn.addActionListener(e -> {
-            java.awt.Container parent = SwingUtilities.getAncestorOfClass(MainContentPanel.class, this);
-            if (parent instanceof MainContentPanel) {
-                ((MainContentPanel) parent).showPanel("Admin Settings");
-            }
-        });
+        settingsBtn.addActionListener(e -> NavigationHelper.navigateAdmin("Admin Settings"));
 
         JButton refreshBtn = new JButton(IconUtils.get("refresh") + " Refresh");
         ThemeManager.styleButton(refreshBtn, ThemeManager.getAccentColor());
@@ -293,16 +290,63 @@ public final class AdminDashboardPanel extends JPanel implements com.calbank.ui.
     }
 
     private JScrollPane createRecentUsersTable() {
-        String[] columns = {"ID", "Username", "Full Name", "Email", "Role", "Status"};
+        String[] columns = {"ID", "Username", "Full Name", "Email", "Role", "Status", "Actions"};
         recentUsersModel = new DefaultTableModel(columns, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        JTable table = createStyledTable(recentUsersModel);
-        JScrollPane sp = new JScrollPane(table);
+        recentUsersTable = createStyledTable(recentUsersModel);
+        recentUsersTable.setRowHeight(44);
+        recentUsersTable.getColumnModel().getColumn(6).setCellRenderer(TableActionButtons.createRenderer());
+        recentUsersTable.getColumnModel().getColumn(6).setPreferredWidth(180);
+        TableActionButtons.attachMouseHandler(recentUsersTable, 6,
+            row -> NavigationHelper.navigateAdmin("Admin Users"),
+            row -> {
+                User selected = getRecentUserAtRow(row);
+                if (selected != null) {
+                    deleteUser(selected);
+                }
+            });
+
+        JScrollPane sp = new JScrollPane(recentUsersTable);
         sp.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorderColor(), 1));
-        sp.setPreferredSize(new Dimension(0, 260));
+        sp.setPreferredSize(new Dimension(0, 300));
         return sp;
+    }
+
+    private User getRecentUserAtRow(int row) {
+        if (row < 0 || row >= recentUsersList.size()) {
+            return null;
+        }
+        return recentUsersList.get(row);
+    }
+
+    private void deleteUser(User user) {
+        if (user.isAdmin()) {
+            ToastNotification.showWarning(this, "Cannot delete admin accounts");
+            return;
+        }
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to permanently delete user '" + user.getUsername() + "'?\n"
+                + "All accounts and transactions for this user will also be removed.",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            if (userService.deleteUser(user.getId())) {
+                ToastNotification.showSuccess(this, "User '" + user.getUsername() + "' deleted successfully");
+                refreshData();
+            } else {
+                ToastNotification.showError(this, "Could not delete user. They may be protected.");
+            }
+        } catch (Exception ex) {
+            ToastNotification.showError(this, "Delete failed: " + ex.getMessage());
+        }
     }
 
     private JScrollPane createRecentTransactionsTable() {

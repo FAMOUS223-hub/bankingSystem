@@ -13,12 +13,60 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
-public final class AdminSettingsPanel extends JPanel {
+public final class AdminSettingsPanel extends JPanel implements com.calbank.ui.MainContentPanel.Refreshable {
 
     private final UserService userService = new UserService();
     private final AccountService accountService = new AccountService();
     private final TransactionService transactionService = new TransactionService();
     private final Runnable onThemeChanged;
+
+    @Override
+    public void refresh() {
+        removeAll();
+        setLayout(new BorderLayout());
+        setBackground(ThemeManager.getBackgroundColor());
+
+        JPanel content = new JPanel(new GridBagLayout());
+        content.setBackground(ThemeManager.getBackgroundColor());
+        content.setBorder(BorderFactory.createEmptyBorder(28, 32, 28, 32));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        gbc.gridy = 0; gbc.insets = new Insets(0, 0, 4, 0);
+        JLabel title = new JLabel("System Settings");
+        title.setFont(ThemeManager.getTitleFont());
+        title.setForeground(ThemeManager.getTextColor());
+        content.add(title, gbc);
+
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 24, 0);
+        JLabel subtitle = new JLabel("Configure system-wide settings and manage application state");
+        subtitle.setFont(ThemeManager.getSmallFont());
+        subtitle.setForeground(ThemeManager.getTextColorMuted());
+        content.add(subtitle, gbc);
+
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 20, 0);
+        content.add(createInfoCard(), gbc);
+
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 20, 0);
+        content.add(createAppearanceCard(), gbc);
+
+        gbc.gridy = 4; gbc.insets = new Insets(0, 0, 20, 0);
+        content.add(createSecurityCard(), gbc);
+
+        gbc.gridy = 5; gbc.insets = new Insets(0, 0, 20, 0);
+        content.add(createDatabaseCard(), gbc);
+
+        gbc.gridy = 6; gbc.insets = new Insets(0, 0, 20, 0);
+        content.add(createAboutCard(), gbc);
+
+        gbc.gridy = 7; gbc.weighty = 1.0; gbc.fill = GridBagConstraints.BOTH;
+        content.add(Box.createVerticalGlue(), gbc);
+
+        add(content, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
 
     public AdminSettingsPanel(Runnable onThemeChanged) {
         this.onThemeChanged = onThemeChanged;
@@ -235,7 +283,26 @@ public final class AdminSettingsPanel extends JPanel {
             }
         });
 
+        JButton resetBalancesBtn = new JButton(IconUtils.get("refresh") + " Reset Balances & Financial Data");
+        ThemeManager.styleDangerButton(resetBalancesBtn);
+        resetBalancesBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to reset all account balances to $0.00 and clear all transaction history?\nThis action cannot be undone.",
+                "Confirm Data Reset",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    accountService.resetAllAccountBalancesAndTransactions();
+                    ToastNotification.showSuccess(this, "All account balances and transactions have been reset to $0.00.");
+                } catch (Exception ex) {
+                    ToastNotification.showError(this, "Reset failed: " + ex.getMessage());
+                }
+            }
+        });
+
         dbBtns.add(backupBtn);
+        dbBtns.add(resetBalancesBtn);
         card.add(dbBtns, cg);
 
         return card;

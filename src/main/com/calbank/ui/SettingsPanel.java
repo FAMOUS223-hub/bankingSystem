@@ -7,10 +7,50 @@ import com.calbank.utils.InputValidator;
 import javax.swing.*;
 import java.awt.*;
 
-public final class SettingsPanel extends JPanel {
+public final class SettingsPanel extends JPanel implements MainContentPanel.Refreshable {
 
     private final UserService userService = new UserService();
     private final Runnable onThemeChanged;
+
+    @Override
+    public void refresh() {
+        removeAll();
+        setLayout(new BorderLayout());
+        setBackground(ThemeManager.getBackgroundColor());
+
+        JPanel content = new JPanel(new GridBagLayout());
+        content.setBackground(ThemeManager.getBackgroundColor());
+        content.setBorder(BorderFactory.createEmptyBorder(28, 32, 28, 32));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        int row = 0;
+
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 20, 0);
+        JLabel title = new JLabel("Settings");
+        title.setFont(ThemeManager.getTitleFont());
+        title.setForeground(ThemeManager.getTextColor());
+        content.add(title, gbc);
+
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 20, 0);
+        content.add(buildAppearanceCard(), gbc);
+
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 20, 0);
+        content.add(buildSecurityCard(), gbc);
+
+        gbc.gridy = row++; gbc.insets = new Insets(0, 0, 0, 0);
+        content.add(buildAboutCard(), gbc);
+
+        gbc.gridy = row; gbc.weighty = 1.0; gbc.fill = GridBagConstraints.BOTH;
+        content.add(Box.createVerticalGlue(), gbc);
+
+        add(content, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
 
     public SettingsPanel(Runnable onThemeChanged) {
         this.onThemeChanged = onThemeChanged;

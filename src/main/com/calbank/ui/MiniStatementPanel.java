@@ -30,6 +30,12 @@ public final class MiniStatementPanel extends JPanel implements MainContentPanel
     private JLabel countLabel;
 
     public MiniStatementPanel() {
+        refresh();
+    }
+
+    @Override
+    public void refresh() {
+        removeAll();
         setLayout(new BorderLayout());
         setBackground(ThemeManager.getBackgroundColor());
 
@@ -67,11 +73,11 @@ public final class MiniStatementPanel extends JPanel implements MainContentPanel
         accountSelector = new JComboBox<>();
         accountSelector.addItem("All Accounts");
         for (Account a : accounts) accountSelector.addItem(a.getAccountId() + " (" + a.getAccountType() + ")");
-        accountSelector.setFont(ThemeManager.getInputFont());
+        ThemeManager.styleComboBox(accountSelector);
         row1.add(accountSelector);
         row1.add(makeFilterLabel("Type:"));
         typeFilter = new JComboBox<>(new String[]{"All", "DEPOSIT", "WITHDRAW", "TRANSFER"});
-        typeFilter.setFont(ThemeManager.getInputFont());
+        ThemeManager.styleComboBox(typeFilter);
         row1.add(typeFilter);
         filtersCard.add(row1, fg);
 
@@ -85,7 +91,7 @@ public final class MiniStatementPanel extends JPanel implements MainContentPanel
         List<Category> categories = categoryService.getCategoriesByUserId(
             CurrentUser.getInstance().getUser().getId());
         for (Category c : categories) categoryFilter.addItem(c.getCategoryId() + " - " + c.toString());
-        categoryFilter.setFont(ThemeManager.getInputFont());
+        ThemeManager.styleComboBox(categoryFilter);
         row2.add(categoryFilter);
         row2.add(makeFilterLabel("Search:"));
         searchField = new JTextField(14);
@@ -157,11 +163,6 @@ public final class MiniStatementPanel extends JPanel implements MainContentPanel
 
         add(content, BorderLayout.CENTER);
         SwingUtilities.invokeLater(this::loadAllTransactions);
-    }
-
-    @Override
-    public void refresh() {
-        loadAllTransactions();
     }
 
     private void loadAllTransactions() {

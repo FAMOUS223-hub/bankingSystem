@@ -55,7 +55,7 @@ public final class UserService {
     }
 
     public User loginUser(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        String sql = "SELECT * FROM users WHERE username = ? AND active = 1";
         try (PreparedStatement ps = dbManager.getConnection().prepareStatement(sql)) {
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
@@ -104,12 +104,74 @@ public final class UserService {
     }
 
     public boolean deleteUser(int userId) {
-        String sql = "DELETE FROM users WHERE id = ? AND role != 'ADMIN'";
-        try (PreparedStatement ps = dbManager.getConnection().prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            return ps.executeUpdate() > 0;
+        Connection conn = dbManager.getConnection();
+        try {
+            boolean autoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try {
+                String checkSql = "SELECT role FROM users WHERE id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
+                    ps.setInt(1, userId);
+                    ResultSet rs = ps.executeQuery();
+                    if (!rs.next() || "ADMIN".equalsIgnoreCase(rs.getString("role"))) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                String delTx = "DELETE FROM transactions WHERE account_id IN (SELECT account_id FROM accounts WHERE user_id = ?)";
+                try (PreparedStatement ps = conn.prepareStatement(delTx)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+
+                String delLoans = "DELETE FROM loans WHERE account_id IN (SELECT account_id FROM accounts WHERE user_id = ?)";
+                try (PreparedStatement ps = conn.prepareStatement(delLoans)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+
+                String delSavings = "DELETE FROM savings WHERE account_id IN (SELECT account_id FROM accounts WHERE user_id = ?)";
+                try (PreparedStatement ps = conn.prepareStatement(delSavings)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+
+                String delAccts = "DELETE FROM accounts WHERE user_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(delAccts)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+
+                String delCats = "DELETE FROM categories WHERE user_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(delCats)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+
+                String delPrefs = "DELETE FROM user_preferences WHERE user_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(delPrefs)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+
+                String delUser = "DELETE FROM users WHERE id = ?";
+                int rows;
+                try (PreparedStatement ps = conn.prepareStatement(delUser)) {
+                    ps.setInt(1, userId);
+                    rows = ps.executeUpdate();
+                }
+
+                conn.commit();
+                return rows > 0;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommit);
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Delete failed: " + e.getMessage(), e);
+            throw new RuntimeException("Delete user failed: " + e.getMessage(), e);
         }
     }
 

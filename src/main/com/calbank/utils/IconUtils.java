@@ -87,28 +87,34 @@ public final class IconUtils {
     private static void loadFont() {
         if (fontLoaded) return;
         try {
-            File solidFile = new File("fonts/fa-solid-900.ttf");
-            File regularFile = new File("fonts/fa-regular-400.ttf");
-
-            if (!solidFile.exists()) {
-                solidFile = new File(System.getProperty("user.dir"), "fonts/fa-solid-900.ttf");
-            }
-            if (!regularFile.exists()) {
-                regularFile = new File(System.getProperty("user.dir"), "fonts/fa-regular-400.ttf");
-            }
-
-            if (solidFile.exists()) {
-                faSolid = Font.createFont(Font.TRUETYPE_FONT, solidFile);
-                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(faSolid);
-            }
-            if (regularFile.exists()) {
-                faRegular = Font.createFont(Font.TRUETYPE_FONT, regularFile);
-                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(faRegular);
-            }
+            faSolid = loadFontResource("fonts/fa-solid-900.ttf", "/fonts/fa-solid-900.ttf");
+            faRegular = loadFontResource("fonts/fa-regular-400.ttf", "/fonts/fa-regular-400.ttf");
             fontLoaded = true;
         } catch (Exception e) {
             fontLoaded = true;
         }
+    }
+
+    private static Font loadFontResource(String filePath, String classpathPath) throws Exception {
+        java.io.InputStream stream = IconUtils.class.getResourceAsStream(classpathPath);
+        if (stream != null) {
+            try (java.io.InputStream in = stream) {
+                Font font = Font.createFont(Font.TRUETYPE_FONT, in);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
+                return font;
+            }
+        }
+
+        File file = new File(filePath);
+        if (!file.exists()) {
+            file = new File(System.getProperty("user.dir"), filePath);
+        }
+        if (file.exists()) {
+            Font font = Font.createFont(Font.TRUETYPE_FONT, file);
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
+            return font;
+        }
+        return null;
     }
 
     public static String get(String key) {

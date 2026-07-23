@@ -77,7 +77,7 @@ public final class WithdrawPanel extends JPanel implements MainContentPanel.Refr
             for (Account a : accounts)
                 accountSelector.addItem(a.getAccountId() + " (" + a.getAccountType() + ")");
         }
-        accountSelector.setFont(ThemeManager.getInputFont());
+        ThemeManager.styleComboBox(accountSelector);
         accountSelector.addActionListener(e -> updateBalance());
         card.add(accountSelector, cg);
 
@@ -105,7 +105,7 @@ public final class WithdrawPanel extends JPanel implements MainContentPanel.Refr
             CurrentUser.getInstance().getUser().getId());
         for (Category c : categories)
             categorySelector.addItem(c.getCategoryId() + " - " + c.toString());
-        categorySelector.setFont(ThemeManager.getInputFont());
+        ThemeManager.styleComboBox(categorySelector);
         card.add(categorySelector, cg);
 
         cg.gridy = cRow++; cg.insets = new Insets(0, 0, 6, 0);

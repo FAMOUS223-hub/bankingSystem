@@ -3,15 +3,15 @@ package com.calbank.ui.theme;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ThemeManager {
 
     public enum Theme { LIGHT, DARK }
 
     private static Theme currentTheme = Theme.LIGHT;
-    private static final java.util.List<Runnable> listeners = new java.util.ArrayList<>();
+    private static final List<Runnable> listeners = new ArrayList<>();
 
     private ThemeManager() {}
 
@@ -31,79 +31,79 @@ public final class ThemeManager {
     }
 
     public static Color getPrimaryColor() {
-        return isLight() ? new Color(30, 80, 200) : new Color(80, 130, 230);
+        return isLight() ? new Color(79, 70, 229) : new Color(99, 102, 241);
     }
 
     public static Color getPrimaryDark() {
-        return isLight() ? new Color(20, 60, 160) : new Color(60, 110, 200);
+        return isLight() ? new Color(67, 56, 202) : new Color(79, 70, 229);
     }
 
     public static Color getSecondaryColor() {
-        return isLight() ? new Color(52, 152, 219) : new Color(52, 73, 94);
+        return isLight() ? new Color(14, 165, 233) : new Color(56, 189, 248);
     }
 
     public static Color getBackgroundColor() {
-        return isLight() ? new Color(244, 246, 251) : new Color(22, 25, 32);
+        return isLight() ? new Color(248, 250, 252) : new Color(15, 23, 42);
     }
 
     public static Color getSurfaceColor() {
-        return isLight() ? Color.WHITE : new Color(30, 33, 42);
+        return isLight() ? Color.WHITE : new Color(30, 41, 59);
     }
 
     public static Color getSidebarColor() {
-        return isLight() ? new Color(25, 55, 140) : new Color(18, 20, 28);
+        return isLight() ? Color.BLACK : new Color(11, 15, 25);
     }
 
     public static Color getSidebarHover() {
-        return isLight() ? new Color(40, 75, 170) : new Color(38, 42, 58);
+        return isLight() ? new Color(50, 50, 50) : new Color(24, 32, 47);
     }
 
     public static Color getSidebarActive() {
-        return isLight() ? new Color(50, 90, 200) : new Color(50, 58, 80);
+        return isLight() ? new Color(79, 70, 229) : new Color(99, 102, 241);
     }
 
     public static Color getSidebarText() {
-        return isLight() ? new Color(200, 210, 230) : new Color(180, 190, 210);
+        return Color.WHITE;
     }
 
     public static Color getSidebarTextActive() {
-        return isLight() ? Color.WHITE : new Color(255, 255, 255);
+        return Color.WHITE;
     }
 
     public static Color getForegroundColor() {
-        return isLight() ? new Color(44, 62, 80) : new Color(220, 225, 235);
+        return isLight() ? new Color(15, 23, 42) : new Color(248, 250, 252);
     }
 
     public static Color getTextColor() {
-        return isLight() ? new Color(50, 55, 70) : new Color(210, 215, 225);
+        return isLight() ? new Color(15, 23, 42) : new Color(248, 250, 252);
     }
 
     public static Color getTextColorMuted() {
-        return isLight() ? new Color(130, 145, 170) : new Color(150, 160, 180);
+        return isLight() ? new Color(100, 116, 139) : new Color(203, 213, 225);
     }
 
     public static Color getAccentColor() {
-        return isLight() ? new Color(34, 180, 100) : new Color(46, 204, 113);
+        return isLight() ? new Color(16, 185, 129) : new Color(52, 211, 153);
     }
 
     public static Color getAccentDark() {
-        return isLight() ? new Color(25, 150, 80) : new Color(39, 174, 96);
+        return isLight() ? new Color(5, 150, 105) : new Color(16, 185, 129);
     }
 
     public static Color getErrorColor() {
-        return isLight() ? new Color(220, 53, 69) : new Color(235, 80, 90);
+        return isLight() ? new Color(239, 68, 68) : new Color(248, 113, 113);
     }
 
     public static Color getWarningColor() {
-        return isLight() ? new Color(255, 193, 7) : new Color(255, 205, 50);
+        return isLight() ? new Color(245, 158, 11) : new Color(251, 191, 36);
     }
 
     public static Color getSuccessColor() {
-        return isLight() ? new Color(40, 167, 69) : new Color(60, 190, 90);
+        return isLight() ? new Color(16, 185, 129) : new Color(52, 211, 153);
     }
 
     public static Color getInfoColor() {
-        return isLight() ? new Color(0, 123, 255) : new Color(100, 170, 255);
+        return isLight() ? new Color(59, 130, 246) : new Color(96, 165, 250);
     }
 
     public static Color getCardColor() {
@@ -111,35 +111,35 @@ public final class ThemeManager {
     }
 
     public static Color getBorderColor() {
-        return isLight() ? new Color(220, 225, 235) : new Color(55, 60, 72);
+        return isLight() ? new Color(226, 232, 240) : new Color(51, 65, 85);
     }
 
     public static Color getDividerColor() {
-        return isLight() ? new Color(230, 235, 242) : new Color(48, 52, 64);
+        return isLight() ? new Color(241, 245, 249) : new Color(51, 65, 85);
     }
 
     public static Color getTableHeaderColor() {
-        return isLight() ? new Color(30, 80, 200) : new Color(35, 38, 50);
+        return isLight() ? new Color(15, 23, 42) : new Color(11, 15, 25);
     }
 
     public static Color getTableRowEven() {
-        return isLight() ? Color.WHITE : new Color(30, 33, 42);
+        return isLight() ? Color.WHITE : new Color(30, 41, 59);
     }
 
     public static Color getTableRowOdd() {
-        return isLight() ? new Color(248, 250, 254) : new Color(25, 28, 36);
+        return isLight() ? new Color(248, 250, 252) : new Color(23, 32, 47);
     }
 
     public static Color getTableSelectionColor() {
-        return isLight() ? new Color(200, 220, 255) : new Color(45, 55, 80);
+        return isLight() ? new Color(224, 231, 255) : new Color(49, 46, 129);
     }
 
     public static Color getInputBackground() {
-        return isLight() ? new Color(250, 252, 255) : new Color(35, 38, 48);
+        return isLight() ? new Color(248, 250, 252) : new Color(15, 23, 42);
     }
 
     public static Color getInputBorder() {
-        return isLight() ? new Color(200, 210, 225) : new Color(65, 70, 82);
+        return isLight() ? new Color(203, 213, 225) : new Color(71, 85, 105);
     }
 
     public static Color getInputFocusBorder() {
@@ -147,19 +147,18 @@ public final class ThemeManager {
     }
 
     public static Color getPositiveColor() {
-        return new Color(34, 180, 100);
+        return new Color(16, 185, 129);
     }
 
     public static Color getNegativeColor() {
-        return new Color(220, 53, 69);
+        return new Color(239, 68, 68);
     }
 
     public static Color getChartColor(int index) {
         Color[] palette = {
-            new Color(30, 80, 200), new Color(34, 180, 100), new Color(255, 152, 0),
-            new Color(220, 53, 69), new Color(156, 39, 176), new Color(0, 188, 212),
-            new Color(255, 87, 34), new Color(103, 58, 183), new Color(0, 150, 136),
-            new Color(244, 67, 54)
+            new Color(79, 70, 229), new Color(16, 185, 129), new Color(245, 158, 11),
+            new Color(239, 68, 68), new Color(139, 92, 246), new Color(14, 165, 233),
+            new Color(236, 72, 153), new Color(20, 184, 166), new Color(249, 115, 22)
         };
         return palette[index % palette.length];
     }
@@ -170,7 +169,7 @@ public final class ThemeManager {
         btn.setFocusPainted(false);
         btn.setFont(getButtonFont());
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 22, 10, 22));
+        btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         btn.setOpaque(true);
         btn.setBorderPainted(false);
     }
@@ -181,7 +180,7 @@ public final class ThemeManager {
         btn.setFocusPainted(false);
         btn.setFont(getButtonFont());
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 22, 10, 22));
+        btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         btn.setOpaque(true);
         btn.setBorderPainted(false);
     }
@@ -205,12 +204,37 @@ public final class ThemeManager {
         if (comp instanceof JTextField || comp instanceof JPasswordField) {
             ((JTextField) comp).setCaretColor(getTextColor());
         }
+        if (comp instanceof JComboBox) {
+            styleComboBox((JComboBox<?>) comp);
+        }
         comp.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(getInputBorder(), 1),
-            BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+            BorderFactory.createEmptyBorder(8, 14, 8, 14)));
         if (isLight()) {
             comp.putClientProperty("JTextField.placeholderForeground", getTextColorMuted());
         }
+    }
+
+    public static void styleComboBox(JComboBox<?> combo) {
+        combo.setBackground(getInputBackground());
+        combo.setForeground(getTextColor());
+        combo.setFont(getInputFont());
+        combo.setRenderer(new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean sel, boolean foc) {
+                java.awt.Component c = super.getListCellRendererComponent(list, value, index, sel, foc);
+                if (sel) {
+                    setBackground(getPrimaryColor());
+                    setForeground(Color.BLACK);
+                } else {
+                    setBackground(getCardColor());
+                    setForeground(getTextColor());
+                }
+                setFont(getInputFont());
+                setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+                return c;
+            }
+        });
     }
 
     public static void styleLabel(JLabel label) {
@@ -222,7 +246,7 @@ public final class ThemeManager {
         card.setBackground(getCardColor());
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(getBorderColor(), 1),
-            BorderFactory.createEmptyBorder(16, 16, 16, 16)));
+            BorderFactory.createEmptyBorder(20, 24, 20, 24)));
     }
 
     public static void applyGlobalTheme() {
@@ -234,6 +258,15 @@ public final class ThemeManager {
         UIManager.put("PasswordField.foreground", getTextColor());
         UIManager.put("ComboBox.background", getInputBackground());
         UIManager.put("ComboBox.foreground", getTextColor());
+        UIManager.put("ComboBox.selectionBackground", getPrimaryColor());
+        UIManager.put("ComboBox.selectionForeground", Color.BLACK);
+        UIManager.put("ComboBoxPopup.background", getCardColor());
+        UIManager.put("ComboBoxList.background", getCardColor());
+        UIManager.put("ComboBoxList.foreground", getTextColor());
+        UIManager.put("List.background", getCardColor());
+        UIManager.put("List.foreground", getTextColor());
+        UIManager.put("List.selectionBackground", getPrimaryColor());
+        UIManager.put("List.selectionForeground", Color.BLACK);
         UIManager.put("Table.background", getCardColor());
         UIManager.put("Table.foreground", getTextColor());
         UIManager.put("TableHeader.background", getTableHeaderColor());
@@ -241,6 +274,13 @@ public final class ThemeManager {
         UIManager.put("ScrollPane.background", getBackgroundColor());
         UIManager.put("TabbedPane.background", getBackgroundColor());
         UIManager.put("TabbedPane.foreground", getTextColor());
+        UIManager.put("OptionPane.background", getSurfaceColor());
+        UIManager.put("OptionPane.messageForeground", getTextColor());
+        UIManager.put("OptionPane.messageFont", getLabelFont());
+        UIManager.put("Button.background", getInputBackground());
+        UIManager.put("Button.foreground", Color.BLACK);
+        UIManager.put("Button.font", getButtonFont());
+        UIManager.put("OptionPane.buttonForeground", Color.BLACK);
     }
 
     public static Font getTitleFont() {
@@ -248,7 +288,7 @@ public final class ThemeManager {
     }
 
     public static Font getSubtitleFont() {
-        return new Font(getFontFamily(), Font.PLAIN, 16);
+        return new Font(getFontFamily(), Font.PLAIN, 15);
     }
 
     public static Font getHeadingFont() {
@@ -276,11 +316,11 @@ public final class ThemeManager {
     }
 
     public static Font getTableHeaderFont() {
-        return new Font(getFontFamily(), Font.BOLD, 13);
+        return new Font(getFontFamily(), Font.BOLD, 12);
     }
 
     public static Font getCardValueFont() {
-        return new Font(getFontFamily(), Font.BOLD, 28);
+        return new Font(getFontFamily(), Font.BOLD, 26);
     }
 
     public static Font getCardLabelFont() {
@@ -296,13 +336,12 @@ public final class ThemeManager {
     }
 
     public static String getFontFamily() {
-        String[] preferred = {"SF Pro Text", "SF Pro Display", "Helvetica Neue",
-                              "Segoe UI", "Arial", "sans-serif"};
+        String[] preferred = {"SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"};
         String[] available = GraphicsEnvironment.getLocalGraphicsEnvironment()
             .getAvailableFontFamilyNames();
         for (String p : preferred) {
             for (String a : available) {
-                if (a.equals(p)) return p;
+                if (a.equalsIgnoreCase(p)) return a;
             }
         }
         return Font.SANS_SERIF;
